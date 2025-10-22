@@ -51,7 +51,6 @@ services:
     image: oasm/oasm-worker:latest
     environment:
       - API=http://core-api:6276/
-      - API_KEY=change_me
       - MAX_JOBS=10
     volumes:
       - nuclei-templates:/root/nuclei-templates:rw
@@ -61,6 +60,9 @@ services:
     depends_on:
       core-api:
         condition: service_healthy
+    deploy:
+      mode: replicated
+      replicas: 3
 
   postgres:
     container_name: oasm-postgres
@@ -95,9 +97,11 @@ services:
       - oasm
     volumes:
       - redis-data:/data
-    command: 'redis-server --requirepass password'
+    environment:
+      REDIS_ARGS: "--requirepass $REDIS_PASSWORD --appendonly yes --save 3600 1 --save 30 500 --save 300 100 --save 60 10000"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', 'password', 'ping']
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
