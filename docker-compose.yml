@@ -6,8 +6,8 @@ services:
     image: oasm/console:latest
     networks:
       - oasm
-    env_file:
-      - ./.env
+    environment:
+      - VITE_API_URL=http://core-api:6276
     ports:
       - '3000:3000'
     restart: 'always'
@@ -20,8 +20,17 @@ services:
     image: oasm/oasm-api:latest
     networks:
       - oasm
-    env_file:
-      - ./.env
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-open_asm}
+      - POSTGRES_SSL=${POSTGRES_SSL:-false}
+      - PORT=${PORT:-6276}
+      - OASM_ADMIN_TOKEN=${OASM_ADMIN_TOKEN}
+      - REDIS_URL=${REDIS_URL}
+      - GEO_IP_URL=geo-ip:4360
     ports:
       - '6276:6276'
     restart: 'always'
@@ -58,12 +67,12 @@ services:
     image: postgres:17
     restart: always
     environment:
-      POSTGRES_USER: '${POSTGRES_USERNAME:-postgres}'
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-open_asm}
-      POSTGRES_HOST_AUTH_METHOD: trust
-      PGUSER: '${POSTGRES_USERNAME:-postgres}'
-      PGPASSWORD: '${POSTGRES_PASSWORD:-postgres}'
+      - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-open_asm}
+      - PGUSER=${POSTGRES_USERNAME:-postgres}
+      - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - pgdata:/var/lib/postgresql/data:rw
     ports:
