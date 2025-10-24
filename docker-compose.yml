@@ -17,7 +17,7 @@ services:
 
   core-api:
     container_name: oasm-api
-    image: oasm/oasm-api:latest
+    image: oasm/oasm-api:dev
     networks:
       - oasm
     environment:
@@ -28,7 +28,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-open_asm}
       - POSTGRES_SSL=${POSTGRES_SSL:-false}
       - PORT=${PORT:-6276}
-      - OASM_ADMIN_TOKEN=${OASM_ADMIN_TOKEN}
+      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
       - REDIS_URL=${REDIS_URL}
       - GEO_IP_URL=geo-ip:4360
     ports:
@@ -48,10 +48,11 @@ services:
       retries: 10
 
   oasm-worker:
-    image: oasm/oasm-worker:latest
+    image: oasm/oasm-worker:dev
     environment:
       - API=http://core-api:6276/
       - MAX_JOBS=10
+      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
     volumes:
       - nuclei-templates:/root/nuclei-templates:rw
     networks:
