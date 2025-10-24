@@ -3,7 +3,7 @@ version: '3.8'
 services:
   console:
     container_name: oasm-console
-    image: oasm/console:latest
+    image: oasm/oasm-console:dev
     networks:
       - oasm
     environment:
@@ -98,7 +98,7 @@ services:
     volumes:
       - redis-data:/data
     environment:
-      REDIS_ARGS: "--requirepass $REDIS_PASSWORD --appendonly yes --save 3600 1 --save 30 500 --save 300 100 --save 60 10000"
+      REDIS_ARGS: '--requirepass $REDIS_PASSWORD --appendonly yes --save 3600 1 --save 30 500 --save 300 100 --save 60 10000'
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
       test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
