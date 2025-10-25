@@ -28,5 +28,4 @@ This repository contains Docker configuration for running OASM platform.
 
 The application will be available at:
 
-- Web Console: http://localhost:8080
-- API: http://localhost:6276
+- Web Console: http://localhost:6276
