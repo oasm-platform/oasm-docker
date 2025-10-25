@@ -3,13 +3,11 @@ version: '3.8'
 services:
   console:
     container_name: oasm-console
-    image: oasm/oasm-console:dev
+    image: oasm/oasm-console:latest
     networks:
       - oasm
     environment:
-      - VITE_API_URL=http://core-api:6276
-    ports:
-      - '3000:3000'
+      - VITE_API_URL=http://core-api:6277
     restart: 'always'
     depends_on:
       core-api:
@@ -17,7 +15,7 @@ services:
 
   core-api:
     container_name: oasm-api
-    image: oasm/oasm-api:dev
+    image: oasm/oasm-api:latest
     networks:
       - oasm
     environment:
@@ -30,9 +28,7 @@ services:
       - PORT=${PORT:-6276}
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
       - REDIS_URL=${REDIS_URL}
-      - GEO_IP_URL=geo-ip:4360
-    ports:
-      - '6276:6276'
+      - GEO_IP_URL=geo-ip-database:4360
     restart: 'always'
     depends_on:
       postgres:
@@ -42,15 +38,15 @@ services:
       redpanda:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:6276/api/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:${PORT:-6276}/api/health']
       interval: 1s
-      timeout: 5s
+      timeout: 60s
       retries: 10
 
   oasm-worker:
-    image: oasm/oasm-worker:dev
+    image: oasm/oasm-worker:latest
     environment:
-      - API=http://core-api:6276/
+      - API=http://core-api:${PORT:-6276}/
       - MAX_JOBS=10
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
     volumes:
@@ -78,8 +74,6 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - pgdata:/var/lib/postgresql/data:rw
-    ports:
-      - '${POSTGRES_PORT:-5432}:5432'
     networks:
       - oasm
     healthcheck:
@@ -92,8 +86,6 @@ services:
     container_name: oasm-redis
     image: redis:alpine
     restart: always
-    ports:
-      - '6379:6379'
     networks:
       - oasm
     volumes:
@@ -120,8 +112,6 @@ services:
     container_name: oasm-redpanda
     image: redpandadata/redpanda:latest
     restart: always
-    ports:
-      - '9092:9092'
     networks:
       - oasm
     volumes:
@@ -148,13 +138,11 @@ services:
       retries: 5
       start_period: 15s
 
-  geo-ip:
-    container_name: geo-ip
+  geo-ip-database:
+    container_name: geo-ip-database
     image: ghcr.io/l1ttps/geoip-proxy:latest
     networks:
       - oasm
-    ports:
-      - '4360:4360'
     restart: 'always'
     volumes:
       - geoip-data:/app/data:rw
@@ -165,7 +153,7 @@ services:
     networks:
       - oasm
     ports:
-      - '8080:8080'
+      - '6276:6276'
     restart: 'always'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
