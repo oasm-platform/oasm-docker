@@ -30,6 +30,8 @@ services:
       - REDIS_URL=${REDIS_URL}
       - GEO_IP_URL=geo-ip-database:4360
     restart: 'always'
+    volumes:
+      - api-storage:/app/.storage:rw
     depends_on:
       postgres:
         condition: service_healthy
@@ -169,6 +171,7 @@ volumes:
   redis-data:
   redpanda-data:
   geoip-data:
+  api-storage:
 
 networks:
   oasm:
