@@ -6,7 +6,8 @@ This repository contains Docker configuration for running OASM platform.
 
 - Docker
 - Docker Compose
-
+## Try it now
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/oasm-platform/oasm-docker)
 ## Quick Start
 
 1. Copy the example environment file:
