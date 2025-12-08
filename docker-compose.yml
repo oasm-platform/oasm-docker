@@ -1,7 +1,8 @@
 services:
   console:
     container_name: oasm-console
-    image: oasm/oasm-console:dev
+    image: oasm/oasm-console:${IMAGE_TAG:-latest}
+    platform: linux/amd64
     networks:
       - oasm
     ports:
@@ -15,7 +16,8 @@ services:
 
   core-api:
     container_name: oasm-api
-    image: oasm/oasm-api:latest
+    image: oasm/oasm-api:${IMAGE_TAG:-latest}
+    platform: linux/amd64
     networks:
       - oasm
     environment:
@@ -46,7 +48,8 @@ services:
       retries: 10
 
   oasm-worker:
-    image: oasm/oasm-worker:latest
+    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
+    platform: linux/amd64
     environment:
       - API=http://core-api:${PORT:-6276}/
       - MAX_JOBS=10
@@ -113,6 +116,7 @@ services:
   geo-ip-database:
     container_name: geo-ip-database
     image: ghcr.io/l1ttps/geoip-proxy:latest
+    platform: linux/amd64
     networks:
       - oasm
     restart: 'always'
