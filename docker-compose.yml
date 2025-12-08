@@ -1,8 +1,7 @@
-
 services:
   console:
     container_name: oasm-console
-    image: oasm/oasm-console:latest
+    image: oasm/oasm-console:dev
     networks:
       - oasm
     ports:
