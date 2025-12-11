@@ -47,46 +47,46 @@ services:
       timeout: 60s
       retries: 10
 
-#  oasm-worker:
-#    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
-#    platform: linux/amd64
-#    environment:
-#      - API=http://core-api:${PORT:-6276}/
-#      - MAX_JOBS=10
-#      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
-#    volumes:
-#      - nuclei-templates:/root/nuclei-templates:rw
-#    networks:
-#      - oasm
-#    restart: on-failure
-#    depends_on:
-#      core-api:
-#        condition: service_healthy
-#    deploy:
-#      mode: replicated
-#      replicas: 3
+  oasm-worker:
+    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    environment:
+      - API=http://core-api:${PORT:-6276}/
+      - MAX_JOBS=10
+      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+    volumes:
+      - nuclei-templates:/root/nuclei-templates:rw
+    networks:
+      - oasm
+    restart: on-failure
+    depends_on:
+      core-api:
+        condition: service_healthy
+    deploy:
+      mode: replicated
+      replicas: 3
 
   postgres:
     container_name: oasm-postgres
-    image: postgres:17
+    image: postgres:18-alpine
     restart: on-failure
     environment:
-      - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-open_asm}
+      POSTGRES_USER: ${POSTGRES_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-open_asm}
     volumes:
-      - pgdata:/var/lib/postgresql/data:rw
+      - pgdata:/var/lib/postgresql:rw
     networks:
       - oasm
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready']
-      interval: 1s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   redis:
     container_name: oasm-redis
-    image: redis:alpine
+    image: redis:8-alpine
     restart: on-failure
     networks:
       - oasm
