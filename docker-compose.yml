@@ -9,7 +9,7 @@ services:
       - '6276:80'
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    restart: 'always'
+    restart: on-failure
     depends_on:
       core-api:
         condition: service_healthy
@@ -31,7 +31,7 @@ services:
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
       - REDIS_URL=${REDIS_URL}
       - GEO_IP_URL=geo-ip-database:4360
-    restart: 'always'
+    restart: on-failure
     volumes:
       - api-storage:/app/.storage:rw
     depends_on:
@@ -47,36 +47,33 @@ services:
       timeout: 60s
       retries: 10
 
-  oasm-worker:
-    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
-    platform: linux/amd64
-    environment:
-      - API=http://core-api:${PORT:-6276}/
-      - MAX_JOBS=10
-      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
-    volumes:
-      - nuclei-templates:/root/nuclei-templates:rw
-    networks:
-      - oasm
-    restart: 'always'
-    depends_on:
-      core-api:
-        condition: service_healthy
-    deploy:
-      mode: replicated
-      replicas: 3
+#  oasm-worker:
+#    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
+#    platform: linux/amd64
+#    environment:
+#      - API=http://core-api:${PORT:-6276}/
+#      - MAX_JOBS=10
+#      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+#    volumes:
+#      - nuclei-templates:/root/nuclei-templates:rw
+#    networks:
+#      - oasm
+#    restart: on-failure
+#    depends_on:
+#      core-api:
+#        condition: service_healthy
+#    deploy:
+#      mode: replicated
+#      replicas: 3
 
   postgres:
     container_name: oasm-postgres
     image: postgres:17
-    restart: always
+    restart: on-failure
     environment:
       - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-open_asm}
-      - PGUSER=${POSTGRES_USERNAME:-postgres}
-      - PGPASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - pgdata:/var/lib/postgresql/data:rw
     networks:
@@ -90,7 +87,7 @@ services:
   redis:
     container_name: oasm-redis
     image: redis:alpine
-    restart: always
+    restart: on-failure
     networks:
       - oasm
     volumes:
@@ -119,7 +116,7 @@ services:
     platform: linux/amd64
     networks:
       - oasm
-    restart: 'always'
+    restart: on-failure
     volumes:
       - geoip-data:/app/data:rw
     healthcheck:
