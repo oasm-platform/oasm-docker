@@ -68,25 +68,25 @@ services:
 
   postgres:
     container_name: oasm-postgres
-    image: postgres:17
+    image: postgres:18-alpine
     restart: on-failure
     environment:
-      - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-open_asm}
+      POSTGRES_USER: ${POSTGRES_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-open_asm}
     volumes:
-      - pgdata:/var/lib/postgresql/data:rw
+      - pgdata:/var/lib/postgresql:rw
     networks:
       - oasm
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready']
-      interval: 1s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d ${POSTGRES_DB}"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   redis:
     container_name: oasm-redis
-    image: redis:alpine
+    image: redis:8-alpine
     restart: on-failure
     networks:
       - oasm
