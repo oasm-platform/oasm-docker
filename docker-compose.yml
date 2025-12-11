@@ -29,7 +29,7 @@ services:
       - POSTGRES_SSL=${POSTGRES_SSL:-false}
       - PORT=${PORT:-6276}
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - GEO_IP_URL=geo-ip-database:4360
     restart: on-failure
     volumes:
@@ -71,9 +71,9 @@ services:
     image: postgres:18-alpine
     restart: on-failure
     environment:
-      POSTGRES_USER: ${POSTGRES_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-open_asm}
+      - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-open_asm}
     volumes:
       - pgdata:/var/lib/postgresql:rw
     networks:
@@ -92,9 +92,7 @@ services:
       - oasm
     volumes:
       - redis-data:/data
-    environment:
-      REDIS_ARGS: '--requirepass $REDIS_PASSWORD --appendonly yes --save 3600 1 --save 30 500 --save 300 100 --save 60 10000'
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes --save 20 1
     healthcheck:
       test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
       interval: 10s
