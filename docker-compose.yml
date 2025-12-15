@@ -47,24 +47,24 @@ services:
       timeout: 60s
       retries: 10
 
-#  oasm-worker:
-#    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
-#    platform: linux/amd64
-#    environment:
-#      - API=http://core-api:${PORT:-6276}/
-#      - MAX_JOBS=10
-#      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
-#    volumes:
-#      - nuclei-templates:/root/nuclei-templates:rw
-#    networks:
-#      - oasm
-#    restart: on-failure
-#    depends_on:
-#      core-api:
-#        condition: service_healthy
-#    deploy:
-#      mode: replicated
-#      replicas: 3
+  oasm-worker:
+    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
+    platform: linux/amd64
+    environment:
+      - API=http://core-api:${PORT:-6276}/
+      - MAX_JOBS=10
+      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+    volumes:
+      - nuclei-templates:/root/nuclei-templates:rw
+    networks:
+      - oasm
+    restart: on-failure
+    depends_on:
+      core-api:
+        condition: service_healthy
+    deploy:
+      mode: replicated
+      replicas: 3
 
   postgres:
     container_name: oasm-postgres
