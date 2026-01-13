@@ -3,8 +3,6 @@ services:
     container_name: oasm-assistant
     image: oasm/oasm-assistant:${IMAGE_TAG:-dev}
     restart: on-failure
-    ports:
-      - "8000:8000"
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
@@ -34,8 +32,7 @@ services:
       - NUCLEI_TEMPLATES_REPO_URL=${NUCLEI_TEMPLATES_REPO_URL:-https://github.com/projectdiscovery/nuclei-templates.git}
     volumes:
       - assistant-logs:/app/logs
-      - ../oasm-assistant/knowledge:/app/knowledge
-      - ../oasm-assistant/agents/core/cot_agent.py:/app/agents/core/cot_agent.py
+      - assistant-knowledge:/app/knowledge
     networks:
       - oasm
 
@@ -43,8 +40,6 @@ services:
     container_name: oasm-searxng
     image: docker.io/searxng/searxng:latest
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     volumes:
       - searxng-data:/var/cache/searxng:rw
     configs:

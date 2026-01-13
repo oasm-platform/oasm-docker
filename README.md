@@ -16,7 +16,7 @@ This repository contains Docker configuration for running the **Open Attack Surf
 1. **Prepare configuration**:
 
    ```bash
-   cp example.env .env
+   cp .env.example .env
    ```
 
 2. **Pull and Start**:
