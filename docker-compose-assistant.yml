@@ -1,0 +1,104 @@
+services:
+  oasm-assistant:
+    container_name: oasm-assistant
+    image: oasm/oasm-assistant:${IMAGE_TAG:-dev}
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_ASSISTANT_DB:-oasm_assistant}
+      - REDIS_URL=${REDIS_URL}
+      - APP_HOST=0.0.0.0
+      - APP_PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-llama3}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_MAX_TOKENS=${LLM_MAX_TOKENS:-4096}
+      - LLM_TIMEOUT=${LLM_TIMEOUT:-60}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-huggingface}
+      - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
+      - EMBEDDING_BASE_URL=${EMBEDDING_BASE_URL}
+      - EMBEDDING_API_KEY=${EMBEDDING_API_KEY}
+      - SEARXNG_URL=${SEARXNG_URL}
+      - SEARXNG_SECRET=${SEARXNG_SECRET}
+      - OASM_CORE_API_URL=http://core-api:${PORT:-6276}
+      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+      - NUCLEI_TEMPLATES_SYNC_TIME=${NUCLEI_TEMPLATES_SYNC_TIME:-"0 0 * * *"}
+      - NUCLEI_TEMPLATES_REPO_URL=${NUCLEI_TEMPLATES_REPO_URL:-https://github.com/projectdiscovery/nuclei-templates.git}
+    volumes:
+      - assistant-logs:/app/logs
+      - ../oasm-assistant/knowledge:/app/knowledge
+      - ../oasm-assistant/agents/core/cot_agent.py:/app/agents/core/cot_agent.py
+    networks:
+      - oasm
+
+  oasm-searxng:
+    container_name: oasm-searxng
+    image: docker.io/searxng/searxng:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - searxng-data:/var/cache/searxng:rw
+    configs:
+      - source: searxng_settings
+        target: /etc/searxng/settings.yml
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080/
+      - SEARXNG_SECRET=${SEARXNG_SECRET:-changeme}
+    networks:
+      - oasm
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+
+volumes:
+  assistant-data:
+  assistant-logs:
+  assistant-knowledge:
+  searxng-data:
+
+networks:
+  oasm:
+    external: true
+    name: oasm_net
+
+configs:
+  searxng_settings:
+    content: |
+      use_default_settings: true
+      server:
+        secret_key: "ea010376560297c7483fbe17da3933a653d319a603f9bcd66f0cd4b471bfdba7"
+        limiter: false
+        image_proxy: false
+      search:
+        formats:
+          - html
+          - json
+  searxng_limiter:
+    content: |
+      [general]
+      enable_limiter = false
+
+      [botdetection]
+      # those are just examples, as the limiter is disabled
+      ip_limit = 1000
+      [botdetection.ip_lists]
+      pass_ip = []
+      block_ip = []
+

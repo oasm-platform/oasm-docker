@@ -1,32 +1,36 @@
 # oasm-docker
 
-This repository contains Docker configuration for running OASM platform.
+This repository contains Docker configuration for running the **Open Attack Surface Management (OASM)** platform.
 
-## Prerequisites
+## 🛠 Prerequisites
 
 - Docker
 - Docker Compose
-## Try it now
+
+## 🚀 Try it now
+
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/oasm-platform/oasm-docker)
-## Quick Start
 
-1. Copy the example environment file:
+## ⚡ Quick Start
 
-   ```
+1. **Prepare configuration**:
+
+   ```bash
    cp example.env .env
    ```
 
-2. Pull the latest Docker images:
+2. **Pull and Start**:
 
-   ```
-   docker-compose pull
-   ```
-
-3. Start the services in detached mode:
-   ```
-   docker-compose up -d
+   ```bash
+   docker compose pull
+   docker compose up -d
    ```
 
-The application will be available at:
+3. **(Optional) AI Assistant**:
+   ```bash
+   docker compose -f docker-compose-assistant.yml up -d
+   ```
 
-- Web Console: http://localhost:6276
+## 🔗 The application will be available at:
+
+Web Console: http://localhost:6276

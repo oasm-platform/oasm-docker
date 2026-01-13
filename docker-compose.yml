@@ -31,6 +31,7 @@ services:
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
       - REDIS_URL=${REDIS_URL}
       - GEO_IP_URL=geo-ip-database:4360
+      - AI_ASSISTANT_URL=${AI_ASSISTANT_URL:-oasm-assistant:8000}
     restart: on-failure
     volumes:
       - api-storage:/app/.storage:rw
@@ -68,8 +69,10 @@ services:
 
   postgres:
     container_name: oasm-postgres
-    image: postgres:17
+    image: pgvector/pgvector:pg17
     restart: on-failure
+    ports:
+      - '5432:5432'
     environment:
       - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
@@ -88,12 +91,14 @@ services:
     container_name: oasm-redis
     image: redis:alpine
     restart: on-failure
+    ports:
+      - '6379:6379'
     networks:
       - oasm
     volumes:
       - redis-data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes --save 3600 1 --save 30 500 --save 300 100 --save 60 10000
     environment:
-      REDIS_ARGS: '--requirepass $REDIS_PASSWORD --appendonly yes --save 3600 1 --save 30 500 --save 300 100 --save 60 10000'
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
       test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
@@ -114,6 +119,8 @@ services:
     container_name: geo-ip-database
     image: ghcr.io/l1ttps/geoip-proxy:latest
     platform: linux/amd64
+    ports:
+      - '4360:4360'
     networks:
       - oasm
     restart: on-failure
@@ -135,3 +142,4 @@ volumes:
 networks:
   oasm:
     driver: bridge
+    name: oasm_net
