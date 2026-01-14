@@ -29,7 +29,7 @@ services:
       - POSTGRES_SSL=${POSTGRES_SSL:-false}
       - PORT=${PORT:-6276}
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=${REDIS_URL:-redis://:open_asm@redis:6379/0}
       - GEO_IP_URL=geo-ip-database:4360
       - AI_ASSISTANT_URL=${AI_ASSISTANT_URL:-oasm-assistant:8000}
     restart: on-failure
