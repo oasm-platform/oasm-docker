@@ -12,7 +12,7 @@
 
 ## 🚀 Try it now
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/oasm-platform/oasm-docker)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/oasm-platform/oasm-docker?skip_quickstart=true&machine=standardLinux32gb&repo=1080874592&ref=main)
 
 ## ⚡ Quick Start
 
@@ -63,16 +63,16 @@ docker compose up --scale oasm-worker=5
 
 ## 🛠️ Make Commands
 
-| Command | Description |
-|---------|-------------|
-| `make` or `make all` | Default target - pulls latest images and runs the full system |
-| `make pull` | Pull the latest images from both docker-compose files (main and assistant) |
-| `make run` | Run services (without pulling new images) |
-| `make update` | Pull new images and restart both compose files (main and assistant) |
-| `make update-main` | Update only main services |
-| `make update-assistant` | Update only assistant services (assistant, searxng) |
-| `make down` | Stop all services |
-| `make clean` | Clean up everything (stop services and remove volumes) |
+| Command                 | Description                                                                |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `make` or `make all`    | Default target - pulls latest images and runs the full system              |
+| `make pull`             | Pull the latest images from both docker-compose files (main and assistant) |
+| `make run`              | Run services (without pulling new images)                                  |
+| `make update`           | Pull new images and restart both compose files (main and assistant)        |
+| `make update-main`      | Update only main services                                                  |
+| `make update-assistant` | Update only assistant services (assistant, searxng)                        |
+| `make down`             | Stop all services                                                          |
+| `make clean`            | Clean up everything (stop services and remove volumes)                     |
 
 ---
 
