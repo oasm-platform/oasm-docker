@@ -1,7 +1,7 @@
 services:
   oasm-assistant:
     container_name: oasm-assistant
-    image: oasm/oasm-assistant:${IMAGE_TAG:-dev}
+    image: oasm/oasm-assistant:${IMAGE_TAG:-latest}
     restart: on-failure
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}

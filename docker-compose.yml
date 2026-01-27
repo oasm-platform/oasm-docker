@@ -1,7 +1,7 @@
 services:
   console:
     container_name: oasm-console
-    image: oasm/oasm-console:${IMAGE_TAG:-dev}
+    image: oasm/oasm-console:${IMAGE_TAG:-latest}
     platform: linux/amd64
     networks:
       - oasm
@@ -16,7 +16,7 @@ services:
 
   core-api:
     container_name: oasm-api
-    image: oasm/oasm-api:${IMAGE_TAG:-dev}
+    image: oasm/oasm-api:${IMAGE_TAG:-latest}
     platform: linux/amd64
     networks:
       - oasm
@@ -49,7 +49,7 @@ services:
       retries: 10
 
   oasm-worker:
-    image: oasm/oasm-worker:${IMAGE_TAG:-dev}
+    image: oasm/oasm-worker:${IMAGE_TAG:-latest}
     platform: linux/amd64
     environment:
       - API=http://core-api:${PORT:-6276}/
