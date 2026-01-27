@@ -3,6 +3,8 @@ services:
     container_name: oasm-assistant
     image: oasm/oasm-assistant:${IMAGE_TAG:-latest}
     restart: on-failure
+    env_file:
+      - .env
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
@@ -12,24 +14,10 @@ services:
       - REDIS_URL=${REDIS_URL}
       - APP_HOST=0.0.0.0
       - APP_PORT=8000
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
-      - LLM_API_KEY=${LLM_API_KEY}
-      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-llama3}
-      - LLM_BASE_URL=${LLM_BASE_URL}
-      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
-      - LLM_MAX_TOKENS=${LLM_MAX_TOKENS:-4096}
-      - LLM_TIMEOUT=${LLM_TIMEOUT:-60}
-      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-huggingface}
-      - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME:-sentence-transformers/all-MiniLM-L6-v2}
-      - EMBEDDING_BASE_URL=${EMBEDDING_BASE_URL}
-      - EMBEDDING_API_KEY=${EMBEDDING_API_KEY}
       - SEARXNG_URL=${SEARXNG_URL}
       - SEARXNG_SECRET=${SEARXNG_SECRET}
       - OASM_CORE_API_URL=http://core-api:${PORT:-6276}
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
-      - NUCLEI_TEMPLATES_SYNC_TIME=${NUCLEI_TEMPLATES_SYNC_TIME:-"0 0 * * *"}
-      - NUCLEI_TEMPLATES_REPO_URL=${NUCLEI_TEMPLATES_REPO_URL:-https://github.com/projectdiscovery/nuclei-templates.git}
     volumes:
       - assistant-logs:/app/logs
       - assistant-knowledge:/app/knowledge
