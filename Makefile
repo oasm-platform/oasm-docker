@@ -37,3 +37,21 @@ down:
 clean: down
 	docker compose down -v --remove-orphans
 	docker compose -f docker-compose-assistant.yml down -v --remove-orphans
+
+# Nessus tool targets
+nessus-pull:
+	docker compose -f tools/nessus/compose.yml pull
+
+nessus-run:
+	docker compose -f tools/nessus/compose.yml up -d --force-recreate --remove-orphans
+
+nessus-update:
+	docker compose -f tools/nessus/compose.yml pull
+	docker compose -f tools/nessus/compose.yml down
+	docker compose -f tools/nessus/compose.yml up -d --force-recreate --remove-orphans
+
+nessus-down:
+	docker compose -f tools/nessus/compose.yml down --remove-orphans
+
+nessus-clean:
+	docker compose -f tools/nessus/compose.yml down -v --remove-orphans

@@ -1,0 +1,29 @@
+log:
+  format: text
+  level: info
+
+server:
+  pprof:
+    enable: true
+    port: 6060
+
+schedule:
+  clean_session_scan: "*/15 * * * *" # every 15 minutes
+  create_session_scan: "*/5 * * * *" # every 5 minutes
+  store_session_scan: "*/5 * * * *" # every 5 minutes
+  keep_worker_alive: "*/30 * * * * *" # every 30 seconds
+
+nessus:
+  - url: https://localhost:8834
+    username: admin
+    password: admin
+    access_key: 91ba4cf0a754e3a31e212304a6c375ff2371a8b353a4b64cb71d66e4e38d16e4
+    secret_key: 398a4eb759264eda4f3950958249c58a603cbb010880dd2e2ff0d77a288a964d
+    create_session: true
+    store_session: true
+    clean_session: true
+    max_scan: 5
+
+oasm:
+  url: http://localhost:6276
+  api_key: x8DHGDVKXRnXF3WrN5Ae6OWqpSQdMf8C1hPD
