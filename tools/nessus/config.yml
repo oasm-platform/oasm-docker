@@ -14,7 +14,7 @@ schedule:
   keep_worker_alive: "*/30 * * * * *" # every 30 seconds
 
 nessus:
-  - url: https://localhost:8834
+  - url: https://docker-nessus:8834
     username: admin
     password: admin
     access_key: 91ba4cf0a754e3a31e212304a6c375ff2371a8b353a4b64cb71d66e4e38d16e4
@@ -25,5 +25,5 @@ nessus:
     max_scan: 5
 
 oasm:
-  url: http://localhost:6276
+  url: http://console:6276
   api_key: x8DHGDVKXRnXF3WrN5Ae6OWqpSQdMf8C1hPD

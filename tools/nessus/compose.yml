@@ -3,9 +3,8 @@ services:
     container_name: oasm-worker-nessus
     image: oasm/oasm-nessus:latest
     platform: linux/amd64
-    # networks:
-    #   - oasm
-    network_mode: "host"
+    networks:
+      - oasm
     restart: no
     volumes:
       - ./config.yml:/root/configs/config.yml
@@ -14,16 +13,17 @@ services:
     container_name: docker-nessus
     image: tenable/nessus:latest-ubuntu
     restart: no
+    env_file: ../../.env
     ports:
       - "8834:8834"
     environment:
-      - USERNAME=admin
-      - PASSWORD=admin
-      - ACTIVATION_CODE=your-activation-code
+      - USERNAME=${NESSUS_USERNAME:-admin}
+      - PASSWORD=${NESSUS_PASSWORD:-admin}
+      - ACTIVATION_CODE=${NESSUS_ACTIVATION_CODE}
     networks:
       - oasm
     volumes:
-      - nessus-official-data:/opt/nessus/var/nessus
+      - nessus-data:/opt/nessus/var/nessus
 
 volumes:
   nessus-data:
