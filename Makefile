@@ -10,8 +10,8 @@ pull:
 
 # Run services (without pulling)
 run:
-	docker compose up -d --force-recreate --remove-orphans
-	docker compose -f docker-compose-assistant.yml up -d --force-recreate --remove-orphans
+	docker compose up -d
+	docker compose -f docker-compose-assistant.yml up -d
 
 # Update: pull latest images and restart services
 update: pull down run
@@ -20,13 +20,13 @@ update: pull down run
 update-main:
 	docker compose pull
 	docker compose down
-	docker compose up -d --force-recreate --remove-orphans
+	docker compose up -d
 
 # Update only assistant services  
 update-assistant:
 	docker compose -f docker-compose-assistant.yml pull
 	docker compose -f docker-compose-assistant.yml down
-	docker compose -f docker-compose-assistant.yml up -d --force-recreate --remove-orphans
+	docker compose -f docker-compose-assistant.yml up -d
 
 # Stop all services
 down:
