@@ -25,13 +25,7 @@
 2. **Pull and Start**:
 
    ```bash
-   docker compose pull
-   docker compose up -d
-   ```
-
-3. **(Optional) AI Assistant**:
-   ```bash
-   docker compose -f docker-compose-assistant.yml up -d
+   make
    ```
 
 ## 🔗 Access the Platform
