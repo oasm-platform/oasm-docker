@@ -32,8 +32,3 @@ update-assistant:
 down:
 	docker compose down --remove-orphans
 	docker compose -f docker-compose-assistant.yml down --remove-orphans
-
-# Clean up everything (stop services and remove volumes)
-clean: down
-	docker compose down -v --remove-orphans
-	docker compose -f docker-compose-assistant.yml down -v --remove-orphans
