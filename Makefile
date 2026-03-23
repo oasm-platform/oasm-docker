@@ -1,7 +1,7 @@
-.PHONY: all pull run update update-main update-assistant down clean
+.PHONY: all pull run update update-main update-assistant down clean pull-latest-commit
 
 # Default target - runs the full system
-all: pull run
+all: pull-latest-commit pull run
 
 # Pull the latest images
 pull:
@@ -21,6 +21,10 @@ update-main:
 	docker compose pull
 	docker compose down
 	docker compose up -d
+
+# Pull latest commit from main repository
+pull-latest-commit:
+	git pull
 
 # Update only assistant services  
 update-assistant:
