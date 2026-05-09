@@ -1,4 +1,4 @@
-.PHONY: all pull run update update-main update-assistant down clean pull-latest-commit
+.PHONY: all pull run update update-main down clean pull-latest-commit
 
 # Default target - runs the full system
 all: pull-latest-commit pull run
@@ -6,12 +6,10 @@ all: pull-latest-commit pull run
 # Pull the latest images
 pull:
 	docker compose pull
-	docker compose -f docker-compose-assistant.yml pull
 
 # Run services (without pulling)
 run:
 	docker compose up -d
-	docker compose -f docker-compose-assistant.yml up -d
 
 # Update: pull latest images and restart services
 update: pull down run
@@ -26,13 +24,6 @@ update-main:
 pull-latest-commit:
 	git pull
 
-# Update only assistant services  
-update-assistant:
-	docker compose -f docker-compose-assistant.yml pull
-	docker compose -f docker-compose-assistant.yml down
-	docker compose -f docker-compose-assistant.yml up -d
-
 # Stop all services
 down:
 	docker compose down --remove-orphans
-	docker compose -f docker-compose-assistant.yml down --remove-orphans

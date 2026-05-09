@@ -31,7 +31,6 @@ services:
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
       - REDIS_URL=${REDIS_URL:-redis://:open_asm@redis:6379/0}
       - GEO_IP_URL=geo-ip-database:4360
-      - AI_ASSISTANT_URL=${AI_ASSISTANT_URL:-oasm-assistant:8000}
     restart: on-failure
     volumes:
       - api-storage:/app/.storage:rw
@@ -73,11 +72,13 @@ services:
     image: oasm/oasm-worker:${IMAGE_TAG:-latest}
     platform: linux/amd64
     environment:
-      - API=http://core-api:${PORT:-6276}/
-      - MAX_JOBS=10
-      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+      - WORKER_API_KEY=change_me
+      - WORKER_GRPC_HOST=core-api
+      - WORKER_GRPC_PORT=16276
+      - WORKER_MAX_CONCURRENCY=10
+      - WORKER_TOOL_PATH=/app/oasm-tools
     volumes:
-      - nuclei-templates:/root/nuclei-templates:rw
+      - worker-tools-cache:/app/oasm-tools:rw
     networks:
       - oasm
     restart: on-failure
@@ -90,7 +91,7 @@ services:
 
   postgres:
     container_name: oasm-postgres
-    image: pgvector/pgvector:pg17
+    image: postgres:17
     restart: on-failure
     environment:
       - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
@@ -149,10 +150,10 @@ services:
 
 volumes:
   pgdata:
-  nuclei-templates:
   redis-data:
   geoip-data:
   api-storage:
+  worker-tools-cache:
 
 networks:
   oasm:
