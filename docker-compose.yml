@@ -78,7 +78,8 @@ services:
       - WORKER_MAX_CONCURRENCY=10
       - WORKER_TOOL_PATH=/app/oasm-tools
     volumes:
-      - worker-tools-cache:/app/oasm-tools:rw
+      - type: volume
+        target: /app/oasm-tools
     networks:
       - oasm
     restart: on-failure
@@ -153,7 +154,6 @@ volumes:
   redis-data:
   geoip-data:
   api-storage:
-  worker-tools-cache:
 
 networks:
   oasm:
