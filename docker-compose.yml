@@ -31,9 +31,10 @@ services:
       - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
       - REDIS_URL=${REDIS_URL:-redis://:open_asm@redis:6379/0}
       - GEO_IP_URL=geo-ip-database:4360
+      - RUSTFS_ENDPOINT=${RUSTFS_ENDPOINT:-http://rustfs:9000}
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfssecret}
     restart: on-failure
-    volumes:
-      - api-storage:/app/.storage:rw
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,6 +49,24 @@ services:
       interval: 1s
       timeout: 60s
       retries: 10
+
+  rustfs:
+    container_name: oasm-rustfs
+    image: rustfs/rustfs:latest
+    networks:
+      - oasm
+    environment:
+      - RUSTFS_ACCESS_KEY=rustfsadmin
+      - RUSTFS_SECRET_KEY=rustfssecret
+    volumes:
+      - rustfs-data:/data:rw
+    restart: 'always'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    command: ['/data']
 
   migration:
     container_name: oasm-migration
@@ -153,7 +172,7 @@ volumes:
   pgdata:
   redis-data:
   geoip-data:
-  api-storage:
+  rustfs-data:
 
 networks:
   oasm:
