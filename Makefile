@@ -12,7 +12,7 @@ run:
 	docker compose up -d
 
 # Update: pull latest images and restart services
-update: pull down run
+update: pull-latest-commit pull down run
 
 # Update only main services
 update-main:
