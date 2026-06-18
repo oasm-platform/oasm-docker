@@ -20,6 +20,8 @@ services:
     platform: linux/amd64
     networks:
       - oasm
+    ports:
+      - '16276:16276'
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME:-postgres}
