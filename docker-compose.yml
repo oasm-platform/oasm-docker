@@ -2,7 +2,6 @@ services:
   console:
     container_name: oasm-console
     image: oasm/oasm-console:${IMAGE_TAG:-latest}
-    platform: linux/amd64
     networks:
       - oasm
     ports:
@@ -17,7 +16,6 @@ services:
   core-api:
     container_name: oasm-api
     image: oasm/oasm-api:${IMAGE_TAG:-latest}
-    platform: linux/amd64
     networks:
       - oasm
     ports:
@@ -73,7 +71,6 @@ services:
   migration:
     container_name: oasm-migration
     image: oasm/oasm-api:${IMAGE_TAG:-dev}
-    platform: linux/amd64
     networks:
       - oasm
     environment:
@@ -91,9 +88,8 @@ services:
 
   oasm-worker:
     image: oasm/oasm-worker:${IMAGE_TAG:-latest}
-    platform: linux/amd64
     environment:
-      - WORKER_API_KEY=change_me
+      - WORKER_API_KEY=${OASM_CLOUD_APIKEY}
       - WORKER_GRPC_HOST=core-api
       - WORKER_GRPC_PORT=16276
       - WORKER_MAX_CONCURRENCY=10
@@ -124,7 +120,7 @@ services:
     networks:
       - oasm
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USERNAME:-postgres}']
       interval: 1s
       timeout: 5s
       retries: 10
