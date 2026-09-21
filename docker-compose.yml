@@ -90,22 +90,44 @@ services:
     image: oasm/oasm-worker:${IMAGE_TAG:-latest}
     environment:
       - WORKER_API_KEY=${OASM_CLOUD_APIKEY}
+      - WORKER_MODE=node
       - WORKER_GRPC_HOST=core-api
       - WORKER_GRPC_PORT=16276
       - WORKER_MAX_CONCURRENCY=10
       - WORKER_TOOL_PATH=/app/oasm-tools
+      # Required: spawned connector containers dial back to this address.
+      # They run on the host daemon (docker-outside-of-docker), so they reach
+      # the worker through host.docker.internal -> the published 26276 port.
+      # Do NOT use 0.0.0.0 or the container IP — containers cannot dial those.
+      - WORKER_CONNECTOR_ADDR=host.docker.internal:26276
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
     volumes:
-      - type: volume
-        target: /app/oasm-tools
+      - worker-tools-cache:/app/oasm-tools:rw
+      # Node mode spawns connector containers via the Docker Engine API
+      # (internal/runtime/docker.go), so it MUST reach a daemon. SECURITY:
+      # docker.sock is root-equivalent on the host — only run trusted images.
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Image runs as non-root uid/gid 1000; the mounted socket is root:root
+    # (gid 0). On Linux hosts with a dedicated docker group use that gid.
+    group_add:
+      - '0'
+    ports:
+      # Connector gRPC listen port. Spawned containers dial back through the
+      # host via WORKER_CONNECTOR_ADDR, which requires this published port.
+      - '26276:26276'
     networks:
       - oasm
-    restart: on-failure
+    restart: always
     depends_on:
       core-api:
         condition: service_healthy
-    deploy:
-      mode: replicated
-      replicas: 3
+    # Single instance: the connector port is published on the host, so a
+    # second replica cannot bind 26276 and would fail to spawn containers.
+    # Scale workers only by giving each a distinct WORKER_CONNECTOR_ADDR/port.
 
   postgres:
     container_name: oasm-postgres
@@ -171,6 +193,7 @@ volumes:
   redis-data:
   geoip-data:
   rustfs-data:
+  worker-tools-cache:
 
 networks:
   oasm:

@@ -50,9 +50,6 @@ docker compose logs -f
 
 # Stop all services
 docker compose down
-
-# Scale worker instances
-docker compose up --scale oasm-worker=5
 ```
 
 ## 🛠️ Make Commands
