@@ -111,10 +111,13 @@ services:
       # (internal/runtime/docker.go), so it MUST reach a daemon. SECURITY:
       # docker.sock is root-equivalent on the host — only run trusted images.
       - /var/run/docker.sock:/var/run/docker.sock
-    # Image runs as non-root uid/gid 1000; the mounted socket is root:root
-    # (gid 0). On Linux hosts with a dedicated docker group use that gid.
+    # Image runs as non-root uid/gid 1000; the mounted socket is owned by the
+    # host's docker group. Docker Desktop uses gid 0; native Linux engines
+    # usually use a dedicated `docker` group. Without the matching gid the
+    # daemon returns "permission denied".
+    # Find it with: stat -c '%g' /var/run/docker.sock
     group_add:
-      - '0'
+      - '${DOCKER_GID:-0}'
     ports:
       # Connector gRPC listen port. Spawned containers dial back through the
       # host via WORKER_CONNECTOR_ADDR, which requires this published port.
