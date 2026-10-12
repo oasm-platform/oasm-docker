@@ -70,7 +70,7 @@ services:
 
   migration:
     container_name: oasm-migration
-    image: oasm/oasm-api:${IMAGE_TAG:-dev}
+    image: oasm/oasm-api:${IMAGE_TAG:-latest}
     networks:
       - oasm
     environment:
