@@ -56,8 +56,8 @@ services:
     networks:
       - oasm
     environment:
-      - RUSTFS_ACCESS_KEY=rustfsadmin
-      - RUSTFS_SECRET_KEY=rustfssecret
+      - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
+      - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfssecret}
     volumes:
       - rustfs-data:/data:rw
     restart: 'always'
