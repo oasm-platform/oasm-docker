@@ -128,9 +128,9 @@ services:
     depends_on:
       core-api:
         condition: service_healthy
-    # Single instance: the connector port is published on the host, so a
-    # second replica cannot bind 26276 and would fail to spawn containers.
-    # Scale workers only by giving each a distinct WORKER_CONNECTOR_ADDR/port.
+  # Single instance: the connector port is published on the host, so a
+  # second replica cannot bind 26276 and would fail to spawn containers.
+  # Scale workers only by giving each a distinct WORKER_CONNECTOR_ADDR/port.
 
   postgres:
     container_name: oasm-postgres
