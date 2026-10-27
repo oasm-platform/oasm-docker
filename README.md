@@ -38,7 +38,7 @@ docker compose up -d
 | --- | --- |
 | Web console | http://localhost:6276 |
 | Core API | http://localhost:16276 |
-| Worker connector gRPC | localhost:26276 (internal, dialed by spawned connectors) |
+| Worker connector gRPC | :26276 on the `oasm_connectors` network (internal, not published) |
 
 Check readiness:
 
@@ -135,10 +135,10 @@ docker compose exec postgres pg_dump -U postgres open_asm > backup.sql
 
 ## Networking
 
-- Private bridge network `oasm_net`; only `6276`, `16276`, and `26276` are published.
+- Private bridge network `oasm_net`; only `6276` and `16276` are published.
 - The console proxies `/api/` to `core-api:${PORT}` (see `nginx.conf`) — change `PORT` and the console upstream must change with it.
-- Spawned connector containers run on the host daemon and dial back via `host.docker.internal:26276` (`WORKER_CONNECTOR_ADDR`). Keep that port published and do not point it at `0.0.0.0` or a container IP.
-- `oasm-worker` is single-instance by design: it owns the host-published `26276`. To scale, give each replica its own connector port and `WORKER_CONNECTOR_ADDR`.
+- Spawned connector containers join the separate `oasm_connectors` network (`WORKER_CONNECTOR_NETWORK`) and dial the worker replica that started them on its own IP, port `26276`. They are not on `oasm_net`, so they cannot reach postgres or redis.
+- `oasm-worker` scales: `docker compose up -d --scale oasm-worker=3`. Nothing is published per replica, so they never collide. `WORKER_MAX_CONCURRENCY` applies per replica — lower it (or set `cpus`/`mem_limit`) when several share one host.
 
 ## Security
 

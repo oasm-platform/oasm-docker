@@ -95,11 +95,13 @@ services:
       - WORKER_GRPC_PORT=16276
       - WORKER_MAX_CONCURRENCY=10
       - WORKER_TOOL_PATH=/app/oasm-tools
-      # Required: spawned connector containers dial back to this address.
-      # They run on the host daemon (docker-outside-of-docker), so they reach
-      # the worker through host.docker.internal -> the published 26276 port.
-      # Do NOT use 0.0.0.0 or the container IP — containers cannot dial those.
-      - WORKER_CONNECTOR_ADDR=host.docker.internal:26276
+      # Spawned connector containers join the oasm_connectors network and dial
+      # this replica directly on its own IP there (:26276). No host port is
+      # published, so the service scales: `docker compose up -d --scale
+      # oasm-worker=3`. Connectors are NOT on oasm_net, so they cannot reach
+      # postgres/redis. Requires a worker image with WORKER_CONNECTOR_NETWORK
+      # support (open-asm#779).
+      - WORKER_CONNECTOR_NETWORK=oasm_connectors
     logging:
       driver: json-file
       options:
@@ -118,19 +120,13 @@ services:
     # Find it with: stat -c '%g' /var/run/docker.sock
     group_add:
       - '${DOCKER_GID:-0}'
-    ports:
-      # Connector gRPC listen port. Spawned containers dial back through the
-      # host via WORKER_CONNECTOR_ADDR, which requires this published port.
-      - '26276:26276'
     networks:
       - oasm
+      - oasm-connectors
     restart: always
     depends_on:
       core-api:
         condition: service_healthy
-  # Single instance: the connector port is published on the host, so a
-  # second replica cannot bind 26276 and would fail to spawn containers.
-  # Scale workers only by giving each a distinct WORKER_CONNECTOR_ADDR/port.
 
   postgres:
     container_name: oasm-postgres
@@ -202,3 +198,8 @@ networks:
   oasm:
     driver: bridge
     name: oasm_net
+  # Fixed name: the worker attaches the connector containers it spawns through
+  # the Engine API by this exact name (WORKER_CONNECTOR_NETWORK).
+  oasm-connectors:
+    driver: bridge
+    name: oasm_connectors
