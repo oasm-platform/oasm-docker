@@ -70,6 +70,7 @@ All settings come from `.env` (created from `.env.example`).
 | --- | --- | --- |
 | `IMAGE_TAG` | `latest` | Image tag for all `oasm/*` images |
 | `OASM_CLOUD_APIKEY` | `change_me` | Cloud API key; also used as `WORKER_API_KEY` |
+| `WORKER_REPLICAS` | `3` | Number of `oasm-worker` replicas started by `make` |
 | `POSTGRES_HOST` | `postgres` | |
 | `POSTGRES_USERNAME` | `postgres` | |
 | `POSTGRES_PASSWORD` | `postgres` | Change before exposing anything |
@@ -185,7 +186,7 @@ docker compose exec postgres pg_dump -U postgres open_asm > backup.sql
 - Private bridge network `oasm_net`; only `6276` and `16276` are published.
 - The console proxies `/api/` to `core-api:${PORT}` (see `nginx.conf`) — change `PORT` and the console upstream must change with it.
 - Spawned connector containers join the separate `oasm_connectors` network (`WORKER_CONNECTOR_NETWORK`) and dial the worker replica that started them on its own IP, port `26276`. They are not on `oasm_net`, so they cannot reach postgres or redis.
-- `oasm-worker` scales: `docker compose up -d --scale oasm-worker=3`. Nothing is published per replica, so they never collide. `WORKER_MAX_CONCURRENCY` applies per replica — lower it (or set `cpus`/`mem_limit`) when several share one host.
+- `oasm-worker` runs `WORKER_REPLICAS` replicas (default `3`), so `make` / `docker compose up -d` starts three workers. Override once with `docker compose up -d --scale oasm-worker=N`. Nothing is published per replica, so they never collide. `WORKER_MAX_CONCURRENCY` applies per replica — lower it (or set `cpus`/`mem_limit`) when several share one host.
 
 ## Security
 

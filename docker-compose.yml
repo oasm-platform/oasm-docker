@@ -88,6 +88,10 @@ services:
 
   oasm-worker:
     image: oasm/oasm-worker:${IMAGE_TAG:-latest}
+    # Replicas started by `docker compose up` / `make`. No ports are published
+    # (see WORKER_CONNECTOR_NETWORK below), so replicas never collide.
+    deploy:
+      replicas: ${WORKER_REPLICAS:-3}
     environment:
       - WORKER_API_KEY=${OASM_CLOUD_APIKEY}
       - WORKER_MODE=node
