@@ -174,7 +174,7 @@ services:
 
   geo-ip-database:
     container_name: geo-ip-database
-    image: ghcr.io/l1ttps/geoip-proxy:latest
+    image: ghcr.io/oasm-platform/dbip:latest
     platform: linux/amd64
     networks:
       - oasm

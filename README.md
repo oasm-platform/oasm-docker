@@ -58,7 +58,7 @@ curl -f http://localhost:6276/api/health
 | `oasm-postgres` | `postgres:17` | Primary database |
 | `oasm-redis` | `redis:alpine` | Queue, cache, rate limiting |
 | `oasm-rustfs` | `rustfs/rustfs` | S3-compatible object storage |
-| `geo-ip-database` | `ghcr.io/l1ttps/geoip-proxy` | GeoIP lookups, `linux/amd64` only |
+| `geo-ip-database` | `ghcr.io/oasm-platform/dbip` | GeoIP lookups, `linux/amd64` only |
 
 Named volumes: `pgdata`, `redis-data`, `geoip-data`, `rustfs-data`, `worker-tools-cache`.
 
