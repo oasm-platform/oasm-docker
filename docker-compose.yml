@@ -130,14 +130,15 @@ services:
 
   postgres:
     container_name: oasm-postgres
-    image: postgres:17
+    image: postgres:18
     restart: on-failure
     environment:
       - POSTGRES_USER=${POSTGRES_USERNAME:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-open_asm}
     volumes:
-      - pgdata:/var/lib/postgresql/data:rw
+      # postgres:18 keeps PGDATA in /var/lib/postgresql/18/docker; mount the parent.
+      - pgdata18:/var/lib/postgresql:rw
     networks:
       - oasm
     healthcheck:
@@ -188,7 +189,7 @@ services:
       retries: 10
 
 volumes:
-  pgdata:
+  pgdata18:
   redis-data:
   geoip-data:
   rustfs-data:

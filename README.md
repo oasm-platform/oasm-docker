@@ -55,12 +55,12 @@ curl -f http://localhost:6276/api/health
 | `oasm-api` | `oasm/oasm-api` | Core API + gRPC, port `16276` |
 | `oasm-migration` | `oasm/oasm-api` | One-shot TypeORM migration, must exit 0 before API starts |
 | `oasm-worker` | `oasm/oasm-worker` | Scan orchestration in `node` mode; spawns connector containers |
-| `oasm-postgres` | `postgres:17` | Primary database |
+| `oasm-postgres` | `postgres:18` | Primary database |
 | `oasm-redis` | `redis:alpine` | Queue, cache, rate limiting |
 | `oasm-rustfs` | `rustfs/rustfs` | S3-compatible object storage |
 | `geo-ip-database` | `ghcr.io/oasm-platform/dbip` | GeoIP lookups, `linux/amd64` only |
 
-Named volumes: `pgdata`, `redis-data`, `geoip-data`, `rustfs-data`, `worker-tools-cache`.
+Named volumes: `pgdata18`, `redis-data`, `geoip-data`, `rustfs-data`, `worker-tools-cache`.
 
 ## Configuration
 
@@ -124,6 +124,53 @@ make update        # or: docker compose pull && docker compose up -d
 ```
 
 The `migration` service runs on every start and is idempotent. If it exits non-zero the API will not start — inspect `docker compose logs migration`.
+
+#### PostgreSQL 17 → 18
+
+> **Experimental** — first tested on OASM **v0.91**. Back up before you start.
+
+Postgres now runs on `postgres:18` with a new volume, `pgdata18`, mounted at `/var/lib/postgresql` (the 18 image keeps its data in `/var/lib/postgresql/18/docker`). The old PG17 volume `<project>_pgdata` is not mounted any more and is never modified. PG18 cannot read PG17 data files, so after updating the stack comes up with an **empty** database until you restore the old data into it.
+
+The steps below work whether or not you have already updated, because they dump straight from the old volume using a temporary PG17 container.
+
+```bash
+# 0. Update to the PG18 compose file and let the stack start once
+#    (creates pgdata18 and an empty open_asm schema)
+make update
+
+# 1. Find the old PG17 volume (usually <project>_pgdata, e.g. oasm-docker_pgdata)
+docker volume ls | grep pgdata
+OLD_VOLUME=oasm-docker_pgdata
+
+# 2. Dump open_asm from the old volume with a temporary PG17 container
+docker run -d --name pg17-restore -e POSTGRES_PASSWORD=x \
+  -v "$OLD_VOLUME":/var/lib/postgresql/data postgres:17
+until docker exec pg17-restore pg_isready -U postgres -q; do sleep 1; done
+docker exec pg17-restore pg_dump -U postgres -Fc open_asm > open_asm_pg17.dump
+docker rm -f pg17-restore
+
+# 3. (optional) Back up the current PG18 database
+docker compose exec -T postgres pg_dump -U postgres -Fc open_asm > open_asm_pg18.dump
+
+# 4. Stop everything that writes to the database
+docker compose stop console core-api oasm-worker
+
+# 5. Replace open_asm in PG18 with the PG17 data
+docker compose exec -T postgres psql -U postgres -d postgres \
+  -c "DROP DATABASE open_asm WITH (FORCE)" -c "CREATE DATABASE open_asm"
+docker compose exec -T postgres pg_restore -U postgres -d open_asm --no-owner < open_asm_pg17.dump
+
+# 6. Start the stack again; migration should report "No migrations are pending"
+docker compose up -d
+docker compose logs migration --tail 5
+```
+
+Notes:
+
+- Replace `postgres` / `open_asm` if you changed `POSTGRES_USERNAME` / `POSTGRES_DB` in `.env`.
+- On Windows Git Bash, prefix the `docker run` in step 2 with `MSYS_NO_PATHCONV=1` so the volume path is not rewritten.
+- Check the data is back, e.g. `docker compose exec -T postgres psql -U postgres -d open_asm -c "select count(*) from assets"`, then reload the console.
+- Keep the old volume for a few days. Once you are satisfied: `docker volume rm "$OLD_VOLUME"`. To roll back instead, revert to `postgres:17` with the `pgdata:/var/lib/postgresql/data` mount — the old volume is unchanged.
 
 ### Backup
 
