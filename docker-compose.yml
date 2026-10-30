@@ -34,6 +34,9 @@ services:
       - RUSTFS_ENDPOINT=${RUSTFS_ENDPOINT:-http://rustfs:9000}
       - RUSTFS_ACCESS_KEY=${RUSTFS_ACCESS_KEY:-rustfsadmin}
       - RUSTFS_SECRET_KEY=${RUSTFS_SECRET_KEY:-rustfssecret}
+      - ENCRYPTION_KEYS=${ENCRYPTION_KEYS:-}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-}
+      - BASE_URL=${BASE_URL:-}
     restart: on-failure
     depends_on:
       postgres:
