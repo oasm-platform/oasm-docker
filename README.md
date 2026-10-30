@@ -21,7 +21,7 @@ The worker mounts `/var/run/docker.sock` and spawns connector containers on the 
 ## Quick start
 
 ```bash
-cp .env.example .env   # then edit secrets
+cp .env.example .env   # then edit secrets; BETTER_AUTH_SECRET is required
 make                   # pull latest commit + pull images + start
 ```
 
@@ -80,7 +80,9 @@ All settings come from `.env` (created from `.env.example`).
 | `PORT` | `6277` | Core API listen port inside the container network |
 | `REDIS_URL` | `redis://:open_asm@redis:6379/0` | Must match `REDIS_PASSWORD` |
 | `REDIS_PASSWORD` | `open_asm` | |
-| `ENCRYPTION_KEYS` | `super_secret_key` | Comma-separated KEKs; **last key encrypts**, earlier keys decrypt only |
+| `BETTER_AUTH_SECRET` | — | **Required.** Signs sessions and email verification links; a random value of 32+ characters (`openssl rand -base64 32`). Newer images won't start without it |
+| `BASE_URL` | — | Public URL of the console, origin only (e.g. `https://cloud.oasm.io`); used for email verification links and the Telegram webhook |
+| `ENCRYPTION_KEYS` | — | **Required.** Comma-separated keys; **last key encrypts**, earlier keys decrypt only. core-api won't start unless the last key is random and 32+ characters (`openssl rand -base64 32`) |
 | `GEO_IP_URL` | `geo-ip-database:4360` | |
 | `RUSTFS_ENDPOINT` | `http://rustfs:9000` | |
 | `RUSTFS_ACCESS_KEY` | `rustfsadmin` | |
@@ -88,8 +90,10 @@ All settings come from `.env` (created from `.env.example`).
 
 Notes:
 
+- `BETTER_AUTH_SECRET` must stay private and stable: anyone who knows it can forge sessions and verification links, and changing it signs every user out.
 - `ENCRYPTION_KEYS` is a secret store of last resort: losing every key makes stored credentials unrecoverable. Keep a backup outside this host.
-- Rotating: append the new key at the end, restart, then drop old keys only after re-encryption.
+- Rotating: append the new key at the end and restart; core-api re-encrypts stored secrets with it at boot. Drop an old key only once the core-api log says no stored secret needs it.
+- Stacks set up before `ENCRYPTION_KEYS` reached core-api stored credentials under a built-in default key, whatever `.env` said. Set a new key and restart: that data stays readable and is re-encrypted with the new key.
 - The compose file's `POSTGRES_*` and Redis defaults apply only when a variable is unset; `.env` always wins.
 
 ## Operations
@@ -192,5 +196,5 @@ docker compose exec postgres pg_dump -U postgres open_asm > backup.sql
 
 - `/var/run/docker.sock` is mounted into `oasm-worker` and is root-equivalent on the host. Run only trusted images and treat the worker as privileged.
 - The image runs as uid/gid `1000`; `group_add: ['0']` grants socket access. On a host with a dedicated `docker` group, use that gid instead.
-- Change every default in `.env` — Postgres password, Redis password, RustFS keys, and `ENCRYPTION_KEYS` — before exposing the stack beyond localhost.
+- Change every default in `.env` — Postgres password, Redis password and RustFS keys — and set `ENCRYPTION_KEYS` and `BETTER_AUTH_SECRET` before exposing the stack beyond localhost.
 - The GeoIP image is pinned to `linux/amd64`; on ARM hosts it runs under emulation or not at all.
