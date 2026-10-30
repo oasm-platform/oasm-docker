@@ -20,9 +20,33 @@ The worker mounts `/var/run/docker.sock` and spawns connector containers on the 
 
 ## Quick start
 
+**1. Create `.env`**
+
 ```bash
-cp .env.example .env   # then edit secrets; BETTER_AUTH_SECRET is required
-make                   # pull latest commit + pull images + start
+cp .env.example .env
+```
+
+**2. Generate the required secrets in `.env`**
+
+> [!IMPORTANT]
+> core-api will not start until these are set. Generate a separate value for each with:
+>
+> ```bash
+> openssl rand -base64 32
+> ```
+>
+> | Variable | Value |
+> | --- | --- |
+> | `ENCRYPTION_KEYS` | A generated value. Encrypts stored credentials: back it up, losing it loses them |
+> | `BETTER_AUTH_SECRET` | Another generated value. Signs sessions and email verification links |
+> | `BASE_URL` | Public URL of the console, e.g. `https://cloud.oasm.io`. Leave empty on localhost |
+>
+> Before exposing the stack beyond localhost, also change the default Postgres, Redis and RustFS passwords.
+
+**3. Start**
+
+```bash
+make   # pull latest commit + pull images + start
 ```
 
 Without Make:
