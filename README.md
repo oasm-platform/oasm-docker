@@ -106,6 +106,7 @@ All settings come from `.env` (created from `.env.example`).
 | `REDIS_PASSWORD` | `open_asm` | |
 | `BETTER_AUTH_SECRET` | — | **Required.** Signs sessions and email verification links; a random value of 32+ characters (`openssl rand -base64 32`). Newer images won't start without it |
 | `BASE_URL` | — | Public URL of the console, origin only (e.g. `https://cloud.oasm.io`); used for email verification links and the Telegram webhook |
+| `TRUSTED_PROXIES` | — | Comma-separated IPs/CIDRs of reverse proxies in front of core-api (e.g. the `oasm_net` subnet behind a tunnel). core-api then takes the client IP from `X-Forwarded-For` for rate limits, sessions and worker IPs. List only addresses clients cannot connect from |
 | `ENCRYPTION_KEYS` | — | **Required.** Comma-separated keys; **last key encrypts**, earlier keys decrypt only. core-api won't start unless the last key is random and 32+ characters (`openssl rand -base64 32`) |
 | `GEO_IP_URL` | `geo-ip-database:4360` | |
 | `RUSTFS_ENDPOINT` | `http://rustfs:9000` | |

@@ -37,6 +37,7 @@ services:
       - ENCRYPTION_KEYS=${ENCRYPTION_KEYS:-}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-}
       - BASE_URL=${BASE_URL:-}
+      - TRUSTED_PROXIES=${TRUSTED_PROXIES:-}
     restart: on-failure
     depends_on:
       postgres:
