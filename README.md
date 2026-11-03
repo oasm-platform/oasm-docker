@@ -49,7 +49,7 @@ cp .env.example .env
 make   # pull latest commit + pull images + start
 ```
 
-Without Make:
+Without Make (on native Linux, first set `DOCKER_GID` in `.env` to the output of `stat -c '%g' /var/run/docker.sock`, or connector scans such as nuclei fail):
 
 ```bash
 docker compose pull
@@ -95,6 +95,7 @@ All settings come from `.env` (created from `.env.example`).
 | `IMAGE_TAG` | `latest` | Image tag for all `oasm/*` images |
 | `OASM_CLOUD_APIKEY` | `change_me` | Cloud API key; also used as `WORKER_API_KEY` |
 | `WORKER_REPLICAS` | `3` | Number of `oasm-worker` replicas started by `make` |
+| `DOCKER_GID` | `0` | Group owning `/var/run/docker.sock`, so the non-root worker can start connector containers. `make` detects it; set it by hand for plain `docker compose` on native Linux |
 | `POSTGRES_HOST` | `postgres` | |
 | `POSTGRES_USERNAME` | `postgres` | |
 | `POSTGRES_PASSWORD` | `postgres` | Change before exposing anything |

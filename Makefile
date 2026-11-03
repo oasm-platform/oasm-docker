@@ -1,5 +1,12 @@
 .PHONY: all pull run update update-main down clean pull-latest-commit
 
+# The worker runs as a non-root user and needs the group that owns the host
+# Docker socket to start connector containers. DOCKER_GID from the environment
+# or .env wins; otherwise detect it (GNU stat, then BSD/macOS stat). Empty falls
+# back to the compose default of 0 (Docker Desktop).
+DOCKER_GID ?= $(or $(shell sed -n 's/^DOCKER_GID=//p' .env 2>/dev/null),$(shell stat -c '%g' /var/run/docker.sock 2>/dev/null || stat -f '%g' /var/run/docker.sock 2>/dev/null))
+export DOCKER_GID
+
 # Default target - runs the full system
 all: pull-latest-commit pull run
 
