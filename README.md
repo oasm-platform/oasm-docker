@@ -29,7 +29,7 @@ cp .env.example .env
 **2. Generate the required secrets in `.env`**
 
 > [!IMPORTANT]
-> core-api will not start until these are set. Generate a separate value for each with:
+> The stack will not start until these are set. Generate a separate value for each with:
 >
 > ```bash
 > openssl rand -base64 32
@@ -39,6 +39,7 @@ cp .env.example .env
 > | --- | --- |
 > | `ENCRYPTION_KEYS` | A generated value. Encrypts stored credentials: back it up, losing it loses them |
 > | `BETTER_AUTH_SECRET` | Another generated value. Signs sessions and email verification links |
+> | `OASM_CLOUD_APIKEY` | Another generated value. The cloud-worker key, also used by the bundled worker: anyone who knows it can claim every workspace's scan jobs and read the credentials they carry |
 > | `BASE_URL` | Public URL of the console, e.g. `https://cloud.oasm.io`. Leave empty on localhost |
 >
 > Before exposing the stack beyond localhost, also change the default Postgres, Redis and RustFS passwords.
@@ -61,7 +62,7 @@ docker compose up -d
 | Service | URL |
 | --- | --- |
 | Web console | http://localhost:6276 |
-| Core API | http://localhost:16276 |
+| Core API (gRPC) | `127.0.0.1:16276` — bound to loopback, for a local CLI worker or debugging |
 | Worker connector gRPC | :26276 on the `oasm_connectors` network (internal, not published) |
 
 Check readiness:
@@ -76,7 +77,7 @@ curl -f http://localhost:6276/api/health
 | Container | Image | Role |
 | --- | --- | --- |
 | `oasm-console` | `oasm/oasm-console` | nginx serving the UI, proxies `/api/` to `core-api` |
-| `oasm-api` | `oasm/oasm-api` | Core API + gRPC, port `16276` |
+| `oasm-api` | `oasm/oasm-api` | Core API + gRPC, gRPC published on `127.0.0.1:16276` |
 | `oasm-migration` | `oasm/oasm-api` | One-shot TypeORM migration, must exit 0 before API starts |
 | `oasm-worker` | `oasm/oasm-worker` | Scan orchestration in `node` mode; spawns connector containers |
 | `oasm-postgres` | `postgres:18` | Primary database |
@@ -93,7 +94,8 @@ All settings come from `.env` (created from `.env.example`).
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `IMAGE_TAG` | `latest` | Image tag for all `oasm/*` images |
-| `OASM_CLOUD_APIKEY` | `change_me` | Cloud API key; also used as `WORKER_API_KEY` |
+| `OASM_CLOUD_APIKEY` | — | **Required.** Cloud-worker key: core-api accepts it at `POST /api/workers/join`. A random value of 32+ characters (`openssl rand -base64 32`); the stack refuses to start without it. Anyone who knows it can claim the scan jobs of every workspace in this stack and read the decrypted credentials they carry |
+| `WORKER_API_KEY` | `= OASM_CLOUD_APIKEY` | Key the bundled worker joins with. It must be a value core-api accepts — today that means the cloud key or a console-issued join key — so the default keeps the two in sync |
 | `WORKER_REPLICAS` | `3` | Number of `oasm-worker` replicas started by `make` |
 | `DOCKER_GID` | `0` | Group owning `/var/run/docker.sock`, so the non-root worker can start connector containers. `make` detects it; set it by hand for plain `docker compose` on native Linux |
 | `POSTGRES_HOST` | `postgres` | |
@@ -117,6 +119,7 @@ All settings come from `.env` (created from `.env.example`).
 Notes:
 
 - `BETTER_AUTH_SECRET` must stay private and stable: anyone who knows it can forge sessions and verification links, and changing it signs every user out.
+- `OASM_CLOUD_APIKEY` is the highest-value secret in this stack after `ENCRYPTION_KEYS`: the worker that joins with it is cloud-scoped, so it claims jobs — and receives decrypted connector config and repository tokens — for **every** workspace in the deployment, not just one. Until core-api can enrol a worker into a single workspace, run one stack per tenant, keep the key out of images, logs and tickets, and rotate it by generating a new value and recreating core-api and the workers together.
 - `ENCRYPTION_KEYS` is a secret store of last resort: losing every key makes stored credentials unrecoverable. Keep a backup outside this host.
 - Rotating: append the new key at the end and restart; core-api re-encrypts stored secrets with it at boot. Drop an old key only once the core-api log says no stored secret needs it.
 - Stacks set up before `ENCRYPTION_KEYS` reached core-api stored credentials under a built-in default key, whatever `.env` said. Set a new key and restart: that data stays readable and is re-encrypted with the new key.
@@ -213,7 +216,7 @@ docker compose exec postgres pg_dump -U postgres open_asm > backup.sql
 
 ## Networking
 
-- Private bridge network `oasm_net`; only `6276` and `16276` are published.
+- Private bridge network `oasm_net`; only `6276` is published on every interface. `16276` (gRPC) is bound to `127.0.0.1` for local workers and debugging — the replicas reach core-api over `oasm_net`, so it does not need to be public.
 - The console proxies `/api/` to `core-api:${PORT}` (see `nginx.conf`) — change `PORT` and the console upstream must change with it.
 - Spawned connector containers join the separate `oasm_connectors` network (`WORKER_CONNECTOR_NETWORK`) and dial the worker replica that started them on its own IP, port `26276`. They are not on `oasm_net`, so they cannot reach postgres or redis.
 - `oasm-worker` runs `WORKER_REPLICAS` replicas (default `3`), so `make` / `docker compose up -d` starts three workers. Override once with `docker compose up -d --scale oasm-worker=N`. Nothing is published per replica, so they never collide. `WORKER_MAX_CONCURRENCY` applies per replica — lower it (or set `cpus`/`mem_limit`) when several share one host.
@@ -222,5 +225,5 @@ docker compose exec postgres pg_dump -U postgres open_asm > backup.sql
 
 - `/var/run/docker.sock` is mounted into `oasm-worker` and is root-equivalent on the host. Run only trusted images and treat the worker as privileged.
 - The image runs as uid/gid `1000`; `group_add: ['0']` grants socket access. On a host with a dedicated `docker` group, use that gid instead.
-- Change every default in `.env` — Postgres password, Redis password and RustFS keys — and set `ENCRYPTION_KEYS` and `BETTER_AUTH_SECRET` before exposing the stack beyond localhost.
+- Change every default in `.env` — Postgres password, Redis password and RustFS keys — and set `ENCRYPTION_KEYS`, `BETTER_AUTH_SECRET` and `OASM_CLOUD_APIKEY` before exposing the stack beyond localhost.
 - The GeoIP image is pinned to `linux/amd64`; on ARM hosts it runs under emulation or not at all.
