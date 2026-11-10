@@ -19,7 +19,12 @@ services:
     networks:
       - oasm
     ports:
-      - '16276:16276'
+      # gRPC only. Workers in this stack reach core-api over oasm_net, so this
+      # binding exists for a local CLI worker and for debugging; keep it on
+      # loopback. Publishing it on every interface exposed an unauthenticated
+      # Join RPC (plus Next/result RPCs, guarded only by a token) to whatever
+      # reached the host.
+      - '127.0.0.1:16276:16276'
     environment:
       - POSTGRES_HOST=${POSTGRES_HOST:-postgres}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME:-postgres}
@@ -28,7 +33,10 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-open_asm}
       - POSTGRES_SSL=${POSTGRES_SSL:-false}
       - PORT=${PORT:-6276}
-      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY}
+      # No default on purpose: an empty key silently disables cloud workers,
+      # a shipped default hands anyone who reads this repo the key that claims
+      # every workspace's jobs. Fail at `docker compose up` instead.
+      - OASM_CLOUD_APIKEY=${OASM_CLOUD_APIKEY:?set OASM_CLOUD_APIKEY in .env, see README quick start}
       - REDIS_URL=${REDIS_URL:-redis://:open_asm@redis:6379/0}
       - GEO_IP_URL=geo-ip-database:4360
       - RUSTFS_ENDPOINT=${RUSTFS_ENDPOINT:-http://rustfs:9000}
@@ -97,7 +105,13 @@ services:
     deploy:
       replicas: ${WORKER_REPLICAS:-3}
     environment:
-      - WORKER_API_KEY=${OASM_CLOUD_APIKEY}
+      # Same secret as OASM_CLOUD_APIKEY by default, because core-api only
+      # accepts that key or a one-time join key issued from the console (which
+      # cannot be minted at boot). The override exists so a deployment can move
+      # to a distinct worker key as soon as core-api supports workspace-scoped
+      # enrollment; setting it to a value core-api does not accept makes the
+      # worker fail to join — and then nothing scans until it is reverted.
+      - WORKER_API_KEY=${WORKER_API_KEY:-${OASM_CLOUD_APIKEY}}
       - WORKER_MODE=node
       - WORKER_GRPC_HOST=core-api
       - WORKER_GRPC_PORT=16276
