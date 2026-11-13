@@ -115,6 +115,10 @@ services:
       - WORKER_MODE=node
       - WORKER_GRPC_HOST=core-api
       - WORKER_GRPC_PORT=16276
+      # Name shown in the console instead of the container ID (the hostname
+      # inside the container). Every replica shares it. Requires a worker
+      # image with WORKER_NAME support (open-asm#871); older images ignore it.
+      - WORKER_NAME=${WORKER_NAME:-oasm-builtin-worker}
       - WORKER_MAX_CONCURRENCY=10
       - WORKER_TOOL_PATH=/app/oasm-tools
       # Spawned connector containers join the oasm_connectors network and dial

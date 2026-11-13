@@ -97,6 +97,7 @@ All settings come from `.env` (created from `.env.example`).
 | `OASM_CLOUD_APIKEY` | — | **Required.** Cloud-worker key: core-api accepts it at `POST /api/workers/join`. A random value of 32+ characters (`openssl rand -base64 32`); the stack refuses to start without it. Anyone who knows it can claim the scan jobs of every workspace in this stack and read the decrypted credentials they carry |
 | `WORKER_API_KEY` | `= OASM_CLOUD_APIKEY` | Key the bundled worker joins with. It must be a value core-api accepts — today that means the cloud key or a console-issued join key — so the default keeps the two in sync |
 | `WORKER_REPLICAS` | `3` | Number of `oasm-worker` replicas started by `make` |
+| `WORKER_NAME` | `oasm-builtin-worker` | Name the bundled workers show in the console instead of their container ID. All replicas share it |
 | `DOCKER_GID` | `0` | Group owning `/var/run/docker.sock`, so the non-root worker can start connector containers. `make` detects it; set it by hand for plain `docker compose` on native Linux |
 | `POSTGRES_HOST` | `postgres` | |
 | `POSTGRES_USERNAME` | `postgres` | |
